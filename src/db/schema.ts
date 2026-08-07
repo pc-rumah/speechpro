@@ -1,29 +1,33 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, index, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { boolean, integer, index, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const dailyResponseValues = ["Kurang", "Cukup", "Baik", "Sangat Baik"] as const;
 export type DailyResponse = (typeof dailyResponseValues)[number];
 
-export const users = sqliteTable(
+export const users = pgTable(
   "users",
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     birthDate: text("birth_date").notNull(),
     parentNote: text("parent_note").notNull().default(""),
-    reminderEnabled: integer("reminder_enabled", { mode: "boolean" }).notNull().default(true),
+    reminderEnabled: boolean("reminder_enabled").notNull().default(true),
     reminderTime: text("reminder_time").notNull().default("19:00"),
     locale: text("locale").notNull().default("id-ID"),
     timezone: text("timezone").notNull().default("Asia/Jakarta"),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     nameIndex: index("users_name_idx").on(table.name),
   }),
 );
 
-export const dailyLogs = sqliteTable(
+export const dailyLogs = pgTable(
   "daily_logs",
   {
     id: text("id").primaryKey(),
@@ -35,8 +39,12 @@ export const dailyLogs = sqliteTable(
     newWords: integer("new_words").notNull(),
     response: text("response", { enum: dailyResponseValues }).notNull(),
     note: text("note").notNull().default(""),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     userDateIndex: uniqueIndex("daily_logs_user_date_unique").on(table.userId, table.logDate),
@@ -45,7 +53,7 @@ export const dailyLogs = sqliteTable(
   }),
 );
 
-export const screenings = sqliteTable(
+export const screenings = pgTable(
   "screenings",
   {
     id: text("id").primaryKey(),
@@ -57,7 +65,9 @@ export const screenings = sqliteTable(
     yesCount: integer("yes_count").notNull(),
     totalCount: integer("total_count").notNull(),
     verdict: text("verdict").notNull(),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     userIndex: index("screenings_user_idx").on(table.userId),

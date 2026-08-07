@@ -1,6 +1,6 @@
-import { createClient } from "@libsql/client";
 import { desc, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/libsql";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 
 import {
   dailyLogs,
@@ -12,17 +12,14 @@ import {
 } from "./schema";
 
 function createDb() {
-  const url = process.env.DATABASE_URL ?? process.env.TURSO_DATABASE_URL;
+  const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
-      "DATABASE_URL is not set. Configure a libSQL or SQLite-compatible database before using Drizzle.",
+      "DATABASE_URL is not set. Configure the Supabase Postgres connection string before using Drizzle.",
     );
   }
 
-  const client = createClient({
-    url,
-    authToken: process.env.DATABASE_AUTH_TOKEN ?? process.env.TURSO_AUTH_TOKEN,
-  });
+  const client = postgres(url, { prepare: false });
 
   return drizzle(client, {
     schema: {
@@ -75,7 +72,11 @@ export async function upsertUser(user: NewUser & { id: string }) {
 
 export async function listDailyLogs(userId: string) {
   const db = getDb();
-  return db.select().from(dailyLogs).where(eq(dailyLogs.userId, userId)).orderBy(desc(dailyLogs.logDate));
+  return db
+    .select()
+    .from(dailyLogs)
+    .where(eq(dailyLogs.userId, userId))
+    .orderBy(desc(dailyLogs.logDate));
 }
 
 export async function saveDailyLog(log: NewDailyLog & { id: string }) {
@@ -103,7 +104,11 @@ export async function saveDailyLog(log: NewDailyLog & { id: string }) {
 
 export async function listScreenings(userId: string) {
   const db = getDb();
-  return db.select().from(screenings).where(eq(screenings.userId, userId)).orderBy(desc(screenings.screenedAt));
+  return db
+    .select()
+    .from(screenings)
+    .where(eq(screenings.userId, userId))
+    .orderBy(desc(screenings.screenedAt));
 }
 
 export async function saveScreening(screening: NewScreening & { id: string }) {
